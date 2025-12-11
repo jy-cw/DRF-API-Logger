@@ -1,5 +1,6 @@
 from django.db import models
 from drf_api_logger.utils import database_log_enabled
+from django.conf import settings
 
 # Only define and load the models if database logging is enabled in settings.
 if database_log_enabled():
@@ -77,7 +78,28 @@ if database_log_enabled():
             max_digits=8,
             help_text='Server execution time (Not complete response time.)'
         )
-
+        user = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.SET_NULL,
+            null=True,
+            blank=True,
+            related_name="api_logs",
+            help_text="User making the request"
+        )
+        username = models.CharField(
+            max_length=200,
+            null=True,
+            blank=True,
+            db_index=True,
+            help_text="Username at the time of request"
+        )
+        request_id = models.CharField(
+            max_length=64,
+            null=True,
+            blank=True,
+            db_index=True,
+            help_text="Request ID for tracing"
+        )
         def __str__(self):
             """
             Returns a readable representation of the log entry,
