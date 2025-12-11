@@ -229,6 +229,11 @@ class APILoggerMiddleware:
                     if request_data:
                         d['body'] = json.dumps(d['body'], indent=4, ensure_ascii=False) if d.get('body') else ''
                     d['response'] = json.dumps(d['response'], indent=4, ensure_ascii=False) if d.get('response') else ''
+                    # 添加用户信息和追踪 ID
+                    user = self._get_user(request)
+                    d['user'] = user
+                    d['username'] = user.get_username() if user else "Anonymous"
+                    d['request_id'] = tracing_id if tracing_id else None
                     LOGGER_THREAD.put_log_data(data=d)
                 if self.DRF_API_LOGGER_SIGNAL:
                     if tracing_id:
@@ -241,3 +246,10 @@ class APILoggerMiddleware:
         else:
             response = self.get_response(request)
         return response
+        
+    def _get_user(self, request):
+        """Get user."""
+        user = request.user
+        if user.is_anonymous:
+            return None
+        return user
